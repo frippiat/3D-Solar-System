@@ -64,7 +64,10 @@ std::vector<unsigned int> g_triangleIndices;
 std::vector<float> g_vertexColors;
 
 //Sphere mesh
-std::shared_ptr<Mesh> g_sphereMesh;
+std::shared_ptr<Mesh> g_sun;
+std::shared_ptr<Mesh> g_earth;
+std::shared_ptr<Mesh> g_moon;
+
 
 // Basic camera model
 class Camera {
@@ -155,7 +158,6 @@ void initGLFW() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-  // Create the window: changed 1024,768 to 1000,1000
   g_window = glfwCreateWindow(
     1024,768,
     "Interactive 3D Applications (OpenGL) - Simple Solar System",
@@ -303,7 +305,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0, 3.0));
+  g_camera.setPosition(glm::vec3(0.0, 0.0, 15.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -317,8 +319,8 @@ void init() {
   */
   initGPUprogram();
 
-  g_sphereMesh = Mesh::genSphere(64); // Create a sphere mesh
-  g_sphereMesh->init(); // Initialize its GPU buffers
+  g_sun = Mesh::genSphere(64); // Create a sphere mesh
+  g_sun->init(); // Initialize its GPU buffers
   
   /* TRIANGLE
   initGPUgeometry();
@@ -353,7 +355,7 @@ void render() {
   glDrawElements(GL_TRIANGLES, g_triangleIndices.size(), GL_UNSIGNED_INT, 0); // Call for rendering: stream the current GPU geometry through the current GPU program
   */
 
-  g_sphereMesh->render();
+  g_sun->render();
 }
 
 // Update any accessible variable based on the current time
