@@ -31,7 +31,7 @@ void Mesh::init() {
 
         // Generate and bind the Index Buffer Object (IBO) for triangle indices
         size_t indexBufferSize = sizeof(unsigned int)*m_triangleIndices.size();
-        #ifdef _MY_OPENGL_IS_33_  //Irrelevant since Vincent's laptop has OpenGL version 4.6
+        #ifdef _MY_OPENGL_IS_33_  //Should be irrelevant since Vincent's laptop has OpenGL version 4.6
             glGenBuffers(1, &m_ibo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSize, m_triangleIndices.data(), GL_STATIC_DRAW);
