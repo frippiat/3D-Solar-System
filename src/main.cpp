@@ -322,6 +322,9 @@ void render() {
   glm::vec3 lightPosition = glm::vec3(0.0f); // Il Sole è all'origine
   glUniform3fv(glGetUniformLocation(g_program, "lightPosition"), 1, glm::value_ptr(lightPosition));
 
+  glm::vec3 lightSourceColor = glm::vec3(0.9f, 0.9f, 0.2f);
+  glUniform3fv(glGetUniformLocation(g_program, "lightSourceColor"), 1, glm::value_ptr(lightSourceColor));
+
   /* TRIANGLES  
   glBindVertexArray(g_vao);     // activate the VAO storing geometry data
   glDrawElements(GL_TRIANGLES, g_triangleIndices.size(), GL_UNSIGNED_INT, 0); // Call for rendering: stream the current GPU geometry through the current GPU program
