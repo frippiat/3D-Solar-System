@@ -354,18 +354,26 @@ void render() {
 void update(const float currentTimeInSec) {
   // std::cout << currentTimeInSec << std::endl;
 
-    // Orbital and rotational periods (relative time factors)
+  // Orbital and rotational periods (relative time factors)
     float earthOrbitSpeed = 0.5f; // Earth takes 2 seconds for a full orbit
     float earthRotationSpeed = 1.0f; // Earth takes 1 second for a full rotation
     float moonOrbitSpeed = 2.0f; // Moon orbits Earth in 0.5 seconds (twice as fast)
     float moonRotationSpeed = 2.0f; // Moon rotates at the same speed as its orbit
 
-    // Earth's transformation (orbit around sun and rotation)
-    modelMatrixEarth = glm::mat4(1.0f);
+    // Calculate Earth's orbital angle
     float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
+
+    // Adjust Earth's position considering the tilt (23.5 degrees)
     float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
     float earthZ = glm::sin(earthOrbitAngle) * kRadOrbitEarth;
-    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, 0.0f, earthZ));
+
+    // Calculate the vertical tilt due to the Earth's axial tilt of 23.5 degrees
+    float tiltAngle = glm::radians(23.5f);
+    float earthY = glm::sin(tiltAngle) * earthZ; // Vertical component based on the tilt
+
+    // Update the Earth's transformation matrix
+    modelMatrixEarth = glm::mat4(1.0f);
+    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, earthY, earthZ));
     modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
 
