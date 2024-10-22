@@ -330,17 +330,17 @@ void render() {
 
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 0.0f); //magenta
-  modelMatrixEarth = glm::mat4(1.0f);
-  modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f));
-  modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
+  //modelMatrixEarth = glm::mat4(1.0f);
+  //modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f));
+  //modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
   sphere->render();
 
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 0.0f, 1.0f);  // cyan
-  modelMatrixMoon = glm::mat4(1.0f);
-  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon+kRadOrbitEarth, 0.0f, 0.0f));
-  modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
+  //modelMatrixMoon = glm::mat4(1.0f);
+  //modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon+kRadOrbitEarth, 0.0f, 0.0f));
+  //modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMoon));
   sphere->render();
 
@@ -353,6 +353,27 @@ void render() {
 // Update any accessible variable based on the current time
 void update(const float currentTimeInSec) {
   // std::cout << currentTimeInSec << std::endl;
+
+    // Orbital and rotational periods (relative time factors)
+    float earthOrbitSpeed = 0.5f; // Earth takes 2 seconds for a full orbit
+    float earthRotationSpeed = 1.0f; // Earth takes 1 second for a full rotation
+    float moonOrbitSpeed = 2.0f; // Moon orbits Earth in 0.5 seconds (twice as fast)
+    float moonRotationSpeed = 2.0f; // Moon rotates at the same speed as its orbit
+
+    // Earth's transformation (orbit around sun and rotation)
+    modelMatrixEarth = glm::mat4(1.0f);
+    float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
+    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(glm::cos(earthOrbitAngle) * kRadOrbitEarth, 0.0f, glm::sin(earthOrbitAngle) * kRadOrbitEarth));
+    modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
+
+    // Moon's transformation (orbit around Earth and rotation)
+    modelMatrixMoon = glm::mat4(1.0f);
+    float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
+    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon));
+    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f)); // Earth is also moving, so add Earth's position
+    modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
 
 }
 
