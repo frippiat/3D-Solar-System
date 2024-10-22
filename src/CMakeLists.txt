@@ -26,7 +26,7 @@ add_compile_definitions(_MY_OPENGL_IS_33_)
 project(tpOpenGL)
 
 # Include Mesh.cpp in the build
-add_executable(${PROJECT_NAME} main.cpp Mesh.cpp)
+add_executable(${PROJECT_NAME} main.cpp Mesh.cpp Camera.cpp)
 
 # Optionally include the header file location for Mesh.hpp
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

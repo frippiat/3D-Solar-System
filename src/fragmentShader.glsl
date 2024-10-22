@@ -3,6 +3,7 @@
 uniform vec3 camPos;  // Camera position
 in vec3 fPosition;    // Fragment position in world space
 in vec3 fNormal;      // Fragment normal in world space
+
 out vec4 color;       // Output fragment color
 
 void main() 
@@ -17,7 +18,7 @@ void main()
     vec3 r = reflect(-l, n);  // reflect expects the incoming light vector, so we negate l
 
     // Ambient lighting (constant low-intensity light)
-    vec3 ambient = vec3(0.9, 0.8, 0.1); // Low ambient light intensity
+    vec3 ambient = vec3(0.2,0.2, 0.2); // Low ambient light intensity
 
     // Diffuse lighting using Lambert's cosine law
     float diff = max(dot(n, l), 0.0); // Dot product between light direction and normal
@@ -30,5 +31,5 @@ void main()
     vec3 specular = spec * vec3(1.0, 1.0, 1.0); // White specular highlights
 
     // Combine all lighting components (ambient + diffuse + specular)
-    color = vec4(ambient + diffuse + specular, 1.0); // Final color with alpha = 1
+    color = vec4(ambient + specular+ diffuse, 1.0); // Final color with alpha = 1
 }
