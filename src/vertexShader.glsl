@@ -12,6 +12,8 @@ void main()
 {
     vec4 worldPosition = modelMatrix * vec4(vPosition, 1.0);
     fPosition = vec3(worldPosition); 
-    fNormal =vNormal;
+    fNormal =vNormal;  // IS DEZE WEL GOED MISSCHIEN VERFIEREN
     gl_Position = projMat * viewMat * worldPosition;
 }
+
+

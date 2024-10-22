@@ -71,7 +71,7 @@ std::shared_ptr<Mesh> Mesh::genSphere(const size_t resolution) {
         // Generate vertices and normals
         for (size_t lat = 0; lat <= latSegments; ++lat) {
             for (size_t lon = 0; lon <= lonSegments; ++lon) {
-                float theta = lat *2.0f* M_PI / latSegments; // latitude angle
+                float theta = lat *2.0f * M_PI / latSegments; // latitude angle
                 float phi = lon * 2.0f * M_PI / lonSegments; // longitude angle
 
                 float x = radius * cosf(theta) * cosf(phi);

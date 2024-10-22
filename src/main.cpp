@@ -65,8 +65,10 @@ std::vector<unsigned int> g_triangleIndices;
 std::vector<float> g_vertexColors;
 
 //Sphere mesh
-std::shared_ptr<Mesh> g_sun;
-int isSun;
+std::shared_ptr<Mesh> sphere;
+glm::mat4 modelMatrixSun;
+glm::mat4 modelMatrixEarth;
+glm::mat4 modelMatrixMoon;
 
 
 GLuint loadTextureFromFileToGPU(const std::string &filename) {
@@ -273,7 +275,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0, 20.0));
+  g_camera.setPosition(glm::vec3(0.0, 0.0, -20.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -287,8 +289,8 @@ void init() {
   */
   initGPUprogram();
 
-  g_sun = Mesh::genSphere(64); // Create a sphere mesh
-  g_sun->init(); // Initialize its GPU buffers
+  sphere = Mesh::genSphere(64); // Create a sphere mesh
+  sphere->init(); // Initialize its GPU buffers
   
   /* TRIANGLE
   initGPUgeometry();
@@ -318,30 +320,29 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "projMat"), 1, GL_FALSE, glm::value_ptr(projMatrix)); // compute the projection matrix of the camera and pass it to the GPU program
   glUniform3fv(glGetUniformLocation(g_program, "camPosition"), 1, glm::value_ptr(camPosition));
 
-  isSun=1;
+
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 1); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 1.0f, 0.0f);  // yellow
-  glm::mat4 modelMatrixSun = glm::mat4(1.0f);
+  modelMatrixSun = glm::mat4(1.0f);
   modelMatrixSun = glm::scale(modelMatrixSun, glm::vec3(kSizeSun));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixSun));
-  g_sun->render();
+  sphere->render();
 
-  isSun=0;
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 0.0f, 1.0f); //magenta
-  glm::mat4 modelMatrixEarth = glm::mat4(1.0f);
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 0.0f); //magenta
+  modelMatrixEarth = glm::mat4(1.0f);
   modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f));
   modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
-  g_sun->render();
+  sphere->render();
 
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 1.0f);  // cyan
-  glm::mat4 modelMatrixMoon = glm::mat4(1.0f);
-  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon, 0.0f, 0.0f));
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 0.0f, 1.0f);  // cyan
+  modelMatrixMoon = glm::mat4(1.0f);
+  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon+kRadOrbitEarth, 0.0f, 0.0f));
   modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMoon));
-  g_sun->render();
+  sphere->render();
 
   /* TRIANGLES  
   glBindVertexArray(g_vao);     // activate the VAO storing geometry data
