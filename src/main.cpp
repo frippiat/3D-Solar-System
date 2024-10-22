@@ -274,7 +274,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0, 3.0));
+  g_camera.setPosition(glm::vec3(0.0, 0.0, 20.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -319,17 +319,32 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "projMat"), 1, GL_FALSE, glm::value_ptr(projMatrix)); // compute the projection matrix of the camera and pass it to the GPU program
   glUniform3fv(glGetUniformLocation(g_program, "camPosition"), 1, glm::value_ptr(camPosition));
 
-  glm::vec3 lightPosition = glm::vec3(0.0f); // Il Sole è all'origine
-  glUniform3fv(glGetUniformLocation(g_program, "lightPosition"), 1, glm::value_ptr(lightPosition));
-
-  glm::vec3 lightSourceColor = glm::vec3(0.9f, 0.9f, 0.2f);
-  glUniform3fv(glGetUniformLocation(g_program, "lightSourceColor"), 1, glm::value_ptr(lightSourceColor));
+  //glUniform1i(glGetUniformLocation(g_program, "isSun"), 1); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 1.0f, 0.0f);  // yellow
 
   /* TRIANGLES  
   glBindVertexArray(g_vao);     // activate the VAO storing geometry data
   glDrawElements(GL_TRIANGLES, g_triangleIndices.size(), GL_UNSIGNED_INT, 0); // Call for rendering: stream the current GPU geometry through the current GPU program
   */
 
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 1.0f, 0.0f);  // yellow
+  glm::mat4 modelMatrixSun = glm::mat4(1.0f);
+  modelMatrixSun = glm::scale(modelMatrixSun, glm::vec3(kSizeSun));
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrixSun));
+  g_sun->render();
+
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 0.0f, 1.0f); 
+  glm::mat4 modelMatrixEarth = glm::mat4(1.0f);
+  modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f));
+  modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
+  g_sun->render();
+
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 1.0f);  // yellow
+  glm::mat4 modelMatrixMoon = glm::mat4(1.0f);
+  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon, 0.0f, 0.0f));
+  modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrixMoon));
   g_sun->render();
 }
 
