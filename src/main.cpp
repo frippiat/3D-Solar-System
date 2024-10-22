@@ -66,8 +66,7 @@ std::vector<float> g_vertexColors;
 
 //Sphere mesh
 std::shared_ptr<Mesh> g_sun;
-std::shared_ptr<Mesh> g_earth;
-std::shared_ptr<Mesh> g_moon;
+int isSun;
 
 
 GLuint loadTextureFromFileToGPU(const std::string &filename) {
@@ -319,14 +318,16 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "projMat"), 1, GL_FALSE, glm::value_ptr(projMatrix)); // compute the projection matrix of the camera and pass it to the GPU program
   glUniform3fv(glGetUniformLocation(g_program, "camPosition"), 1, glm::value_ptr(camPosition));
 
-  //glUniform1i(glGetUniformLocation(g_program, "isSun"), 1); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
-
+  isSun=1;
+  glUniform1i(glGetUniformLocation(g_program, "isSun"), 1); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 1.0f, 0.0f);  // yellow
   glm::mat4 modelMatrixSun = glm::mat4(1.0f);
   modelMatrixSun = glm::scale(modelMatrixSun, glm::vec3(kSizeSun));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixSun));
   g_sun->render();
 
+  isSun=0;
+  glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 0.0f, 1.0f); //magenta
   glm::mat4 modelMatrixEarth = glm::mat4(1.0f);
   modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f));
@@ -334,6 +335,7 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
   g_sun->render();
 
+  glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 1.0f);  // cyan
   glm::mat4 modelMatrixMoon = glm::mat4(1.0f);
   modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon, 0.0f, 0.0f));
