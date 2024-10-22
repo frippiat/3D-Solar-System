@@ -275,7 +275,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0, -20.0));
+  g_camera.setPosition(glm::vec3(0.0, 0.0, 30.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -353,7 +353,6 @@ void render() {
 // Update any accessible variable based on the current time
 void update(const float currentTimeInSec) {
   // std::cout << currentTimeInSec << std::endl;
-
   // Orbital and rotational periods (relative time factors)
     float earthOrbitSpeed = 0.5f; // Earth takes 2 seconds for a full orbit
     float earthRotationSpeed = 1.0f; // Earth takes 1 second for a full rotation
@@ -363,12 +362,10 @@ void update(const float currentTimeInSec) {
     // Calculate Earth's orbital angle
     float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
 
-    // Adjust Earth's position considering the tilt (23.5 degrees)
+    // Adjust Earth's position considering the tilt (-23.5 degrees)
     float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
     float earthZ = glm::sin(earthOrbitAngle) * kRadOrbitEarth;
-
-    // Calculate the vertical tilt due to the Earth's axial tilt of 23.5 degrees
-    float tiltAngle = glm::radians(23.5f);
+    float tiltAngle = glm::radians(-23.5f); // Using -23.5 degrees for the tilt
     float earthY = glm::sin(tiltAngle) * earthZ; // Vertical component based on the tilt
 
     // Update the Earth's transformation matrix
@@ -381,10 +378,14 @@ void update(const float currentTimeInSec) {
     modelMatrixMoon = glm::mat4(1.0f);
     float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
 
-    // Calculate moon's position based on Earth's position
+    // Calculate moon's position based on Earth's position (ignore Earth's tilt for Moon)
     glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]); // Get Earth's current position
     modelMatrixMoon = glm::translate(modelMatrixMoon, earthPosition); // Start from Earth's position
-    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon)); // Moon orbit around Earth
+
+    // Moon's orbit in the XY plane
+    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon)); // Moon orbits around Earth in XY plane
+
+    // Moon rotation (optional, if you want the moon to rotate on its axis)
     modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f)); // Moon rotation
     modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
 
