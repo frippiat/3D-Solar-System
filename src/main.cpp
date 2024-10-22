@@ -363,16 +363,21 @@ void update(const float currentTimeInSec) {
     // Earth's transformation (orbit around sun and rotation)
     modelMatrixEarth = glm::mat4(1.0f);
     float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
-    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(glm::cos(earthOrbitAngle) * kRadOrbitEarth, 0.0f, glm::sin(earthOrbitAngle) * kRadOrbitEarth));
+    float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
+    float earthZ = glm::sin(earthOrbitAngle) * kRadOrbitEarth;
+    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, 0.0f, earthZ));
     modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
 
     // Moon's transformation (orbit around Earth and rotation)
     modelMatrixMoon = glm::mat4(1.0f);
     float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
-    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon));
-    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f)); // Earth is also moving, so add Earth's position
-    modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Calculate moon's position based on Earth's position
+    glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]); // Get Earth's current position
+    modelMatrixMoon = glm::translate(modelMatrixMoon, earthPosition); // Start from Earth's position
+    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon)); // Moon orbit around Earth
+    modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f)); // Moon rotation
     modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
 
 }
