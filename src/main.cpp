@@ -105,7 +105,16 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   } else if(action == GLFW_PRESS && (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)) {
     glfwSetWindowShouldClose(window, true); // Closes the application if the escape key is pressed
+  } else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_UP) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] - 5.0));
+  } 
+  // For DOWN arrow (move camera backward)
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_DOWN) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] + 5.0));
   }
+
 }
 
 void errorCallback(int error, const char *desc) {
@@ -275,7 +284,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0, 30.0));
+  g_camera.setPosition(glm::vec3(0.0, 0.0, 20.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -289,7 +298,7 @@ void init() {
   */
   initGPUprogram();
 
-  sphere = Mesh::genSphere(64); // Create a sphere mesh
+  sphere = Mesh::genSphere(32); // Create a sphere mesh
   sphere->init(); // Initialize its GPU buffers
   
   /* TRIANGLE
@@ -352,25 +361,24 @@ void render() {
 
 // Update any accessible variable based on the current time
 void update(const float currentTimeInSec) {
-  // std::cout << currentTimeInSec << std::endl;
+
   // Orbital and rotational periods (relative time factors)
     float earthOrbitSpeed = 0.5f; // Earth takes 2 seconds for a full orbit
     float earthRotationSpeed = 1.0f; // Earth takes 1 second for a full rotation
     float moonOrbitSpeed = 2.0f; // Moon orbits Earth in 0.5 seconds (twice as fast)
     float moonRotationSpeed = 2.0f; // Moon rotates at the same speed as its orbit
 
-    // Calculate Earth's orbital angle
+    // Earth's transformation (orbit around sun and rotation)
+    modelMatrixEarth = glm::mat4(1.0f);
     float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
-
-    // Adjust Earth's position considering the tilt (-23.5 degrees)
     float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
     float earthZ = glm::sin(earthOrbitAngle) * kRadOrbitEarth;
-    float tiltAngle = glm::radians(-23.5f); // Using -23.5 degrees for the tilt
-    float earthY = glm::sin(tiltAngle) * earthZ; // Vertical component based on the tilt
-
-    // Update the Earth's transformation matrix
-    modelMatrixEarth = glm::mat4(1.0f);
-    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, earthY, earthZ));
+    modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, 0.0f, earthZ));
+    
+    // Apply axial tilt (23.5 degrees) to the Earth's rotation
+    modelMatrixEarth = glm::rotate(modelMatrixEarth, glm::radians(23.5f), glm::vec3(1.0f, 0.0f, 0.0f));
+    
+    // Now apply the Earth's rotation around its axis
     modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
     modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
 
@@ -378,17 +386,12 @@ void update(const float currentTimeInSec) {
     modelMatrixMoon = glm::mat4(1.0f);
     float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
 
-    // Calculate moon's position based on Earth's position (ignore Earth's tilt for Moon)
+    // Calculate moon's position based on Earth's position
     glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]); // Get Earth's current position
     modelMatrixMoon = glm::translate(modelMatrixMoon, earthPosition); // Start from Earth's position
-
-    // Moon's orbit in the XY plane
-    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon)); // Moon orbits around Earth in XY plane
-
-    // Moon rotation (optional, if you want the moon to rotate on its axis)
+    modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon)); // Moon orbit around Earth
     modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f)); // Moon rotation
     modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
-
 }
 
 int main(int argc, char ** argv) {
