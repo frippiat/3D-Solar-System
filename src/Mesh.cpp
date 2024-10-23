@@ -29,6 +29,12 @@ void Mesh::init() {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1); // normals are index 1 in the shader
 
+        glGenBuffers(1, &m_texCoordVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_texCoordVbo);
+        glBufferData(GL_ARRAY_BUFFER, m_vertexTexCoords.size() * sizeof(float), m_vertexTexCoords.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0); // Texture coordinates are at index 2
+        glEnableVertexAttribArray(2);
+
         // Generate and bind the Index Buffer Object (IBO) for triangle indices
         size_t indexBufferSize = sizeof(unsigned int)*m_triangleIndices.size();
         #ifdef _MY_OPENGL_IS_33_  //Should be irrelevant since Vincent's laptop has OpenGL version 4.6
@@ -87,6 +93,12 @@ std::shared_ptr<Mesh> Mesh::genSphere(const size_t resolution) {
                 mesh->m_vertexNormals.push_back(x/radius);
                 mesh->m_vertexNormals.push_back(y/radius);
                 mesh->m_vertexNormals.push_back(z/radius);
+
+                // Texture coordinates
+                float u = (float)lon / lonSegments;
+                float v = (float)lat / latSegments;
+                mesh->m_vertexTexCoords.push_back(u);
+                mesh->m_vertexTexCoords.push_back(v);
             }
         }
 

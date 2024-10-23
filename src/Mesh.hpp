@@ -31,11 +31,14 @@ private:
     // Triangle indices for the mesh
     std::vector<unsigned int> m_triangleIndices;
 
+    std::vector<float> m_vertexTexCoords;  // Texture coordinates
+
     // OpenGL-related buffers
     GLuint m_vao = 0;        // Vertex Array Object (VAO)
     GLuint m_posVbo = 0;     // Vertex Buffer Object (VBO) for positions
     GLuint m_normalVbo = 0;  // Vertex Buffer Object (VBO) for normals
     GLuint m_ibo = 0;        // Index Buffer Object (IBO)
+    GLuint m_texCoordVbo = 0; //Vertex Buffer Object (VBO) for texture coordinates
 };
 
 #endif // MESH_HPP

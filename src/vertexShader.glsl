@@ -2,11 +2,13 @@
 
 layout(location=0) in vec3 vPosition; // input vertex positions
 layout(location=1) in vec3 vNormal; // input vertex normals
+layout(location=2) in vec2 vTexCoord; //input texture coordinates
 
 uniform mat4 viewMat, projMat,modelMatrix;
 
 out vec3 fNormal;
 out vec3 fPosition;
+out vec2 fTexCoord;
 
 void main() 
 {
@@ -14,6 +16,7 @@ void main()
     fPosition = vec3(worldPosition); 
     fNormal =mat3(transpose(inverse(modelMatrix))) * vNormal;  // IS DEZE WEL GOED MISSCHIEN VERFIEREN
     gl_Position = projMat * viewMat * worldPosition;
+    fTexCoord=vTexCoord;
 }
 
 

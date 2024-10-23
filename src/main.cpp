@@ -70,6 +70,9 @@ glm::mat4 modelMatrixSun;
 glm::mat4 modelMatrixEarth;
 glm::mat4 modelMatrixMoon;
 
+GLuint g_earthTexID;
+GLuint g_moonTexID;
+
 
 GLuint loadTextureFromFileToGPU(const std::string &filename) {
   // Loading the image in CPU memory using stb_image
@@ -202,6 +205,11 @@ void initGPUprogram() {
 
   glUseProgram(g_program);
   // TODO: set shader variables, textures, etc.
+
+  g_earthTexID = loadTextureFromFileToGPU("media/earth.jpg");
+  glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
+  g_moonTexID = loadTextureFromFileToGPU("media/moon.jpg");
+  glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
 }
 
 // Define your mesh(es) in the CPU memory
@@ -284,7 +292,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0, 20.0));
+  g_camera.setPosition(glm::vec3(0.0, -10.0, 0.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -298,7 +306,7 @@ void init() {
   */
   initGPUprogram();
 
-  sphere = Mesh::genSphere(32); // Create a sphere mesh
+  sphere = Mesh::genSphere(16); // Create a sphere mesh
   sphere->init(); // Initialize its GPU buffers
   
   /* TRIANGLE
@@ -337,6 +345,9 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixSun));
   sphere->render();
 
+  //Activate the texture for Earth
+  glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+  glBindTexture(GL_TEXTURE_2D, g_earthTexID); // Bind the Earth texture
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 0.0f); //magenta
   //modelMatrixEarth = glm::mat4(1.0f);
@@ -345,6 +356,8 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
   sphere->render();
 
+  glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+  glBindTexture(GL_TEXTURE_2D, g_moonTexID);
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
   glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 0.0f, 1.0f);  // cyan
   //modelMatrixMoon = glm::mat4(1.0f);
@@ -357,6 +370,7 @@ void render() {
   glBindVertexArray(g_vao);     // activate the VAO storing geometry data
   glDrawElements(GL_TRIANGLES, g_triangleIndices.size(), GL_UNSIGNED_INT, 0); // Call for rendering: stream the current GPU geometry through the current GPU program
   */
+ glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture
 }
 
 // Update any accessible variable based on the current time

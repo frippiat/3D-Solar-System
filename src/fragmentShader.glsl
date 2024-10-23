@@ -2,12 +2,18 @@
 
 in vec3 fPosition;    // Fragment position in world space
 in vec3 fNormal;      // Fragment normal in world space
+in vec2 fTexCoord;  // Texture coordinates
 
-out vec4 color;       // Output fragment color
+out vec4 color;       // // Shader output: the color response attached to this fragment
 
 uniform vec3 camPosition;  // Camera position
 uniform vec3 objectColor; //Color the object
 uniform int isSun;         // is the object the sun or not
+
+struct Material { sampler2D albedoTex;}; 
+
+uniform Material material;
+
 
 void main() 
 {
@@ -16,12 +22,14 @@ void main()
         return;
     }
 
+    vec3 texColor = texture(material.albedoTex, fTexCoord).rgb;
+
     vec3 n = normalize(fNormal); // Normalize the normal vector
     vec3 lightPosition = vec3(0.0, 0.0, 0.0);
     vec3 l = normalize(lightPosition-fPosition); // Light direction (hardcoded)
 
     // Ambient lighting (constant low-intensity light)
-    vec3 ambient = vec3(0.2,0.2, 0.2)*objectColor; // Low ambient light intensity
+    vec3 ambient = vec3(0.4,0.4, 0.4); // Low ambient light intensity
 
 
     // Diffuse lighting using Lambert's cosine law
@@ -38,8 +46,7 @@ void main()
     vec3 specular = spec * vec3(1.0, 1.0, 1.0); // White specular highlights
 
     // Combine all lighting components (ambient + diffuse + specular)
-    vec3 finalColor = ambient+specular+ diffuse;
-    color = vec4(objectColor*finalColor, 1.0); // Final color with alpha = 1
-
+    vec3 finalColor = ambient+specular+diffuse;
+    color = vec4(texColor*finalColor, 1.0);
     return;
 }
