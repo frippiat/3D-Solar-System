@@ -72,22 +72,22 @@ glm::mat4 modelMatrixMoon;
 
 
 GLuint loadTextureFromFileToGPU(const std::string &filename) {
-  int width, height, numComponents;
   // Loading the image in CPU memory using stb_image
-  unsigned char *data = stbi_load(
-    filename.c_str(),
-    &width, &height,
-    &numComponents, // 1 for a 8 bit grey-scale image, 3 for 24bits RGB image, 4 for 32bits RGBA image
-    0);
-
-  GLuint texID;
-  // TODO: create a texture and upload the image data in GPU memory using
-  // glGenTextures, glBindTexture, glTexParameteri, and glTexImage2D
-
+  int width, height, numComponents;
+  unsigned char *data = stbi_load(filename.c_str(), &width, &height, &numComponents, 0);
+  GLuint texID; // OpenGL texture identifier
+  glGenTextures(1, &texID); // generate an OpenGL texture container
+  glBindTexture(GL_TEXTURE_2D, texID); // activate the texture
+  // Setup the texture filtering option and repeat mode; check www.opengl.org for details.
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // Fill the GPU texture with the data stored in the CPU image
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
   // Free useless CPU memory
   stbi_image_free(data);
   glBindTexture(GL_TEXTURE_2D, 0); // unbind the texture
-
   return texID;
 }
 
@@ -107,12 +107,12 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     glfwSetWindowShouldClose(window, true); // Closes the application if the escape key is pressed
   } else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_UP) {
     const glm::vec3 camPosition = g_camera.getPosition();
-    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] - 5.0));
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] - 0.1));
   } 
   // For DOWN arrow (move camera backward)
   else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_DOWN) {
     const glm::vec3 camPosition = g_camera.getPosition();
-    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] + 5.0));
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] + 0.1));
   }
 
 }
