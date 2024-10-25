@@ -382,7 +382,7 @@ void update(const float currentTimeInSec) {
   float moonOrbitSpeed = 2.0f;     // Moon completes an orbit in 0.5 seconds (half of Earth’s rotation period)
   float moonRotationSpeed = 2.0f;  // Moon’s rotation period matches its orbital period
 
-  // Earth's transformation (orbit around the Sun and rotation)
+  // Earth's transformation (orbit around the Sun and rotation )
   modelMatrixEarth = glm::mat4(1.0f);
   float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
   float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
