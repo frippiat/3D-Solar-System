@@ -373,7 +373,7 @@ void render() {
  glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture
 }
 
-// Update any accessible variable based on the current time
+// Update any accessible variable based on the current time.
 void update(const float currentTimeInSec) {
 
     // Adjusted Orbital and Rotational Periods (relative time factors)

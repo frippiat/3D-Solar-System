@@ -102,7 +102,7 @@ std::shared_ptr<Mesh> Mesh::genSphere(const size_t resolution) {
             }
         }
 
-        // Generate indices for triangle strips .
+        // Generate indices for triangle strips.
         for (size_t lat = 0; lat < latSegments; ++lat) {
             for (size_t lon = 0; lon < lonSegments; ++lon) {
                 unsigned int first = (lat * (lonSegments + 1)) + lon;
