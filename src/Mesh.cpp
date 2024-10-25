@@ -86,13 +86,13 @@ std::shared_ptr<Mesh> Mesh::genSphere(const size_t resolution) {
 
                 // Vertex position
                 mesh->m_vertexPositions.push_back(x);
+                mesh->m_vertexPositions.push_back(-z);
                 mesh->m_vertexPositions.push_back(y);
-                mesh->m_vertexPositions.push_back(z);
 
                 // Vertex normal (same as position for a unit sphere)
                 mesh->m_vertexNormals.push_back(x/radius);
+                mesh->m_vertexNormals.push_back(-z/radius);
                 mesh->m_vertexNormals.push_back(y/radius);
-                mesh->m_vertexNormals.push_back(z/radius);
 
                 // Texture coordinates
                 float u = (float)lon / lonSegments;
