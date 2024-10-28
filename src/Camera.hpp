@@ -7,7 +7,7 @@
 
 class Camera {
 public:
-  // Getters and setters for camera parameters
+  // Getters and setters for camera
   float getFov() const;
   void setFoV(const float f);
   float getAspectRatio() const;

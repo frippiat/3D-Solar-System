@@ -1,5 +1,5 @@
 #include "Camera.hpp"
-// Getters and setters for camera parameters
+// Getters and setters for camera
 
 float Camera::getFov() const {
     return m_fov;
