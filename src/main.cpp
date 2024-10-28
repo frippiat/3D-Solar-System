@@ -436,27 +436,24 @@ void render() {
 
 void update(const float currentTimeInSec) {
   // Constants for orbital and rotational periods
-  float earthOrbitSpeed = 0.5f, earthRotationSpeed = 1.0f;
-  float moonOrbitSpeed = 2.0f, moonRotationSpeed = 2.0f;
+  float earthRotationSpeed = 1.0f;
+  float earthOrbitSpeed = 0.5f*earthRotationSpeed;
+  float moonRotationSpeed = 2.0f*earthRotationSpeed;
+  float moonOrbitSpeed = 2.0f;
 
-  // Earth's transformation
   modelMatrixEarth = glm::mat4(1.0f);
-  float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
-  float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
-  float earthZ = glm::sin(earthOrbitAngle) * kRadOrbitEarth;
-  modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, 0.0f, earthZ));
-  modelMatrixEarth = glm::rotate(modelMatrixEarth, glm::radians(23.5f), glm::vec3(1.0f, 0.0f, 0.0f));
-  modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
-  modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
+  glm::mat4 earthTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(kRadOrbitEarth * cos(0.3f * currentTimeInSec), 0.0f, kRadOrbitEarth * sin(0.3f * currentTimeInSec)));
+  glm::mat4 earthScale = glm::scale(glm::mat4(1.0f), glm::vec3(kSizeEarth));
+  glm::mat4 earthRotate = glm::rotate(glm::mat4(1.0f), 0.6f * currentTimeInSec, glm::vec3(sin(glm::radians(23.5)), cos(glm::radians(23.5)), 0.0f));
+  modelMatrixEarth= earthTranslate * earthScale * earthRotate;
 
-  // Moon's transformation
-  modelMatrixMoon = glm::mat4(1.0f);
-  float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
-  glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]);
-  modelMatrixMoon = glm::translate(modelMatrixMoon, earthPosition);
-  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon));
-  modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
-  modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
+
+
+  modelMatrixMoon = glm::mat4(1.0f); 
+  glm::mat4 moonTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(kRadOrbitMoon * cos(0.6 * currentTimeInSec), 0.0f, kRadOrbitMoon * sin(0.6 * currentTimeInSec)));
+  glm::mat4 moonRotate = glm::rotate(glm::mat4(1.0f), 0.6f * currentTimeInSec, glm::vec3(0, 1, 0.0f));
+  glm::mat4 moonScale = glm::scale(glm::mat4(1.0f), glm::vec3(kSizeMoon));
+  modelMatrixMoon = earthTranslate * moonTranslate * moonRotate * moonScale;
 
   // Mars parameters
   modelMatrixMars = glm::mat4(1.0f);
