@@ -31,7 +31,6 @@ void main()
     // Ambient lighting  (constant low-intensity light)
     vec3 ambient = vec3(0.4,0.4, 0.4); // Low ambient light intensity
 
-
     // Diffuse lighting using Lambert's cosine law
     vec3 lightSourceColor=vec3(1.0 ,1.0,1.0);
     float diff = max(dot(n, l), 0.0);

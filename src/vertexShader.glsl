@@ -14,7 +14,7 @@ void main()
 {
     vec4 worldPosition = modelMatrix * vec4(vPosition, 1.0);
     fPosition = vec3(worldPosition); 
-    fNormal =mat3(transpose(inverse(modelMatrix))) * vNormal;  // NOG VERFIEREN OF DIT CORRECT BEREKEND IS
+    fNormal =mat3(transpose(inverse(modelMatrix))) * vNormal;  // NOG VERFIEER OF DIT CORRECT BEREKEND IS
     gl_Position = projMat * viewMat * worldPosition;
     fTexCoord=vTexCoord;
 }

@@ -24,9 +24,6 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#include "Mesh.hpp"
-#include "Camera.hpp"
-
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -66,13 +63,180 @@ std::vector<float> g_vertexPositions;
 std::vector<unsigned int> g_triangleIndices;
 std::vector<float> g_vertexColors;
 
-//Sphere mesh
-std::shared_ptr<Mesh> sphere;
 glm::mat4 modelSun, modelEarth, modelMoon, modelMars, modelVenus, modelUranus, modelSaturn, modelNeptune, modelJupiter, modelMercury;
 
 GLuint g_earthTexID, g_moonTexID, g_marsTexID, g_venusTexID, g_uranusTexID, g_saturnTexID, g_neptuneTexID, g_jupiterTexID, g_mercuryTexID;
 
+class Mesh {
+public:
+    // Initializes the geometry buffer
+void init() {
+    // Set up the VAO, VBOs, and IBO for the mesh geometry
 
+    // Create and bind the Vertex Array Object (VAO)
+        #ifdef _MY_OPENGL_IS_33_
+        glGenVertexArrays(1, &m_vao); // If your system doesn't support OpenGL 4.5, you should use this instead of glCreateVertexArrays.
+        #else
+        glCreateVertexArrays(1, &m_vao);
+        #endif
+
+        glBindVertexArray(m_vao);
+
+        // Generate and bind the Vertex Buffer Object (VBO) for positions
+        glGenBuffers(1, &m_posVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_posVbo);
+        glBufferData(GL_ARRAY_BUFFER, m_vertexPositions.size() * sizeof(float), m_vertexPositions.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0); // position is index 0 in the shader
+
+        // Generate and bind the Vertex Buffer Object (VBO) for normals
+        glGenBuffers(1, &m_normalVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_normalVbo);
+        glBufferData(GL_ARRAY_BUFFER, m_vertexNormals.size() * sizeof(float), m_vertexNormals.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1); // normals are index 1 in the shader
+
+        glGenBuffers(1, &m_texCoordVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, m_texCoordVbo);
+        glBufferData(GL_ARRAY_BUFFER, m_vertexTexCoords.size() * sizeof(float), m_vertexTexCoords.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0); // Texture coordinates are at index 2
+        glEnableVertexAttribArray(2);
+
+        // Generate and bind the Index Buffer Object (IBO) for triangle indices
+        size_t indexBufferSize = sizeof(unsigned int)*m_triangleIndices.size();
+        #ifdef _MY_OPENGL_IS_33_  //Should be irrelevant since Vincent's laptop has OpenGL version 4.6
+            glGenBuffers(1, &m_ibo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSize, m_triangleIndices.data(), GL_STATIC_DRAW);
+        #else
+            glCreateBuffers(1, &m_ibo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+            glNamedBufferStorage(m_ibo, indexBufferSize, m_triangleIndices.data(), GL_DYNAMIC_STORAGE_BIT);
+        #endif
+            // Unbind the VAO for now
+            glBindVertexArray(0);
+    }
+    
+    // Called in the main rendering loop to render the mesh
+void render() {
+        // Bind the VAO and issue the drawing commands
+        glBindVertexArray(m_vao);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_triangleIndices.size()), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+    
+    // Generates a unit sphere with the given resolution
+static std::shared_ptr<Mesh> genSphere(const size_t resolution) {
+      auto mesh = std::make_shared<Mesh>();
+
+          const float radius = 1.0f; // Unit sphere
+
+          const size_t latSegments = resolution; // Number of latitude segments
+          const size_t lonSegments = resolution; // Number of longitude segments
+
+          // Generate vertices and normals
+          for (size_t lat = 0; lat <= latSegments; ++lat) {
+              for (size_t lon = 0; lon <= lonSegments; ++lon) {
+                  float theta = M_PI/2.0-lat *M_PI / latSegments;  // latitude angle
+                  float phi = lon * 2.0f * M_PI / lonSegments; // longitude angle
+
+                  float x = radius * cosf(theta) * cosf(phi);
+                  float y = radius * cosf(theta) * sinf(phi);
+                  float z = radius * sinf(theta);
+
+                  // Vertex position
+                  mesh->m_vertexPositions.push_back(x);
+                  mesh->m_vertexPositions.push_back(-z);
+                  mesh->m_vertexPositions.push_back(y);
+
+                  // Vertex normal (same as position for a unit sphere)
+                  mesh->m_vertexNormals.push_back(x/radius);
+                  mesh->m_vertexNormals.push_back(-z/radius);
+                  mesh->m_vertexNormals.push_back(y/radius);
+
+                  // Texture coordinates
+                  float u = (float)lon / lonSegments;
+                  float v = (float)lat / latSegments;
+                  mesh->m_vertexTexCoords.push_back(u);
+                  mesh->m_vertexTexCoords.push_back(v);
+              }
+          }
+
+          // Generate indices for triangle strips.
+          for (size_t lat = 0; lat < latSegments; ++lat) {
+              for (size_t lon = 0; lon < lonSegments; ++lon) {
+                  unsigned int first = (lat * (lonSegments + 1)) + lon;
+                  unsigned int second = first + lonSegments + 1;
+
+                  // First triangle
+                  mesh->m_triangleIndices.push_back(first);
+                  mesh->m_triangleIndices.push_back(second);
+                  mesh->m_triangleIndices.push_back(first + 1);
+
+                  // Second triangle
+                  mesh->m_triangleIndices.push_back(second);
+                  mesh->m_triangleIndices.push_back(second + 1);
+                  mesh->m_triangleIndices.push_back(first + 1);
+              }
+          }
+
+          return mesh;
+        }
+
+private:
+    // Vertex positions for the mesh
+    std::vector<float> m_vertexPositions;
+
+    // Vertex normals for the mesh
+    std::vector<float> m_vertexNormals;
+
+    // Triangle indices for the mesh
+    std::vector<unsigned int> m_triangleIndices;
+
+    std::vector<float> m_vertexTexCoords;  // Texture coordinates
+
+    // OpenGL-related buffers
+    GLuint m_vao = 0;        // Vertex Array Object (VAO)
+    GLuint m_posVbo = 0;     // Vertex Buffer Object (VBO) for the positions
+    GLuint m_normalVbo = 0;  // Vertex Buffer Object (VBO) for the normals
+    GLuint m_ibo = 0;        // Index Buffer Object (IBO)
+    GLuint m_texCoordVbo = 0; //Vertex Buffer Object (VBO) for the texture coordinates
+};
+//Sphere mesh
+std::shared_ptr<Mesh> sphere;
+
+
+// Basic camera model
+class Camera {
+public:
+  inline float getFov() const { return m_fov; }
+  inline void setFoV(const float f) { m_fov = f; }
+  inline float getAspectRatio() const { return m_aspectRatio; }
+  inline void setAspectRatio(const float a) { m_aspectRatio = a; }
+  inline float getNear() const { return m_near; }
+  inline void setNear(const float n) { m_near = n; }
+  inline float getFar() const { return m_far; }
+  inline void setFar(const float n) { m_far = n; }
+  inline void setPosition(const glm::vec3 &p) { m_pos = p; }
+  inline glm::vec3 getPosition() { return m_pos; }
+
+  inline glm::mat4 computeViewMatrix() const {
+    return glm::lookAt(m_pos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+  }
+
+  // Returns the projection matrix stemming from the camera intrinsic parameter.
+  inline glm::mat4 computeProjectionMatrix() const {
+    return glm::perspective(glm::radians(m_fov), m_aspectRatio, m_near, m_far);
+  }
+
+private:
+  glm::vec3 m_pos = glm::vec3(0, 0, 0);
+  float m_fov = 45.f;        // Field of view, in degrees
+  float m_aspectRatio = 1.f; // Ratio between the width and the height of the image
+  float m_near = 0.1f; // Distance before which geometry is excluded from the rasterization process
+  float m_far = 10.f; // Distance after which the geometry is excluded from the rasterization process
+};
+Camera g_camera;
 
 
 GLuint loadTextureFromFileToGPU(const std::string &filename) {
@@ -519,3 +683,7 @@ int main(int argc, char ** argv) {
   clear();
   return EXIT_SUCCESS;
 }
+
+
+
+
