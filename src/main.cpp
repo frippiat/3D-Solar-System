@@ -35,6 +35,8 @@
 #include <string>
 #include <cmath>
 #include <memory>
+#include <thread>
+#include <chrono>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -66,14 +68,10 @@ std::vector<float> g_vertexColors;
 
 //Sphere mesh
 std::shared_ptr<Mesh> sphere;
-glm::mat4 modelMatrixSun;
-glm::mat4 modelMatrixEarth;
-glm::mat4 modelMatrixMoon;
-glm::mat4 modelMatrixMars;
+glm::mat4 modelMatrixSun, modelMatrixEarth, modelMatrixMoon, modelMatrixMars, modelMatrixVenus, modelMatrixUranus, modelMatrixSaturn, modelMatrixNeptune, modelMatrixJupiter, modelMatrixMercury;
 
-GLuint g_earthTexID;
-GLuint g_moonTexID;
-GLuint g_marsTexID;
+GLuint g_earthTexID, g_moonTexID, g_marsTexID, g_venusTexID, g_uranusTexID, g_saturnTexID, g_neptuneTexID, g_jupiterTexID, g_mercuryTexID;
+
 
 
 
@@ -111,16 +109,42 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   } else if(action == GLFW_PRESS && (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)) {
     glfwSetWindowShouldClose(window, true); // Closes the application if the escape key is pressed
-  } else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_UP) {
-    const glm::vec3 camPosition = g_camera.getPosition();
-    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] - 0.1));
   } 
-  // For DOWN arrow (move camera backward)
+  //Move camera down on Z-axis
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_X) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1]-1.0, camPosition[2]));
+  } 
+  // Move camera up on Z-axis
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_S) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1]+1.0, camPosition[2]));
+  } 
+  // Move camera up on Y-axis 
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_UP) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2]-1.0));
+  } 
+  //  Move camera down on Y-axis
   else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_DOWN) {
     const glm::vec3 camPosition = g_camera.getPosition();
-    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2] + 0.1));
+    g_camera.setPosition(glm::vec3(camPosition[0], camPosition[1], camPosition[2]+1.0));
+  } 
+  // Move camera right on X-axis
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_RIGHT) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0]+1.0, camPosition[1], camPosition[2]));
+  } 
+  // Move camera left on X-axis
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_LEFT) {
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(camPosition[0]-1.0, camPosition[1], camPosition[2]));
   }
-
+  // Return camera to initial position
+  else if((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_C) { //set back in starting position
+    const glm::vec3 camPosition = g_camera.getPosition();
+    g_camera.setPosition(glm::vec3(0.0, 0.0 , 30.0));
+  }
 }
 
 void errorCallback(int error, const char *desc) {
@@ -211,11 +235,17 @@ void initGPUprogram() {
 
   // Load textures for Earth, Moon, and Mars
   g_earthTexID = loadTextureFromFileToGPU("media/earth.jpg");
-  glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
   g_moonTexID = loadTextureFromFileToGPU("media/moon.jpg");
-  glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
   g_marsTexID = loadTextureFromFileToGPU("media/mars.jpg");
+  g_venusTexID = loadTextureFromFileToGPU("media/venus.jpg");
+  g_uranusTexID = loadTextureFromFileToGPU("media/uranus.jpg");
+  g_saturnTexID = loadTextureFromFileToGPU("media/saturn.jpg");
+  g_neptuneTexID = loadTextureFromFileToGPU("media/neptune.jpg");
+  g_jupiterTexID = loadTextureFromFileToGPU("media/jupiter.jpg");
+  g_mercuryTexID = loadTextureFromFileToGPU("media/mercury.jpg");
+
   glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
+  
 }
 
 
@@ -299,7 +329,7 @@ void initCamera() {
   glfwGetWindowSize(g_window, &width, &height);
   g_camera.setAspectRatio(static_cast<float>(width)/static_cast<float>(height));
 
-  g_camera.setPosition(glm::vec3(0.0, 0.0 , 20.0));
+  g_camera.setPosition(glm::vec3(0.0, 0.0 , 30.0));
   g_camera.setNear(0.1);
   g_camera.setFar(80.1);
 }
@@ -351,39 +381,65 @@ void render() {
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixSun));
   sphere->render();
 
-  // Earth rendering
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, g_earthTexID);
   glUniform1i(glGetUniformLocation(g_program, "isSun"), 0);
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 0.0f);
+
+  // Earth rendering
+  glBindTexture(GL_TEXTURE_2D, g_earthTexID);
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
   sphere->render();
 
   // Moon rendering
   glBindTexture(GL_TEXTURE_2D, g_moonTexID);
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 0.0f, 1.0f);
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMoon));
   sphere->render();
 
   // Mars rendering
   glBindTexture(GL_TEXTURE_2D, g_marsTexID);
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 0.5f, 0.3f);
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMars));
   sphere->render();
+
+  // Venus rendering
+  glBindTexture(GL_TEXTURE_2D, g_venusTexID);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixVenus));
+  sphere->render();
+
+  // Jupiter rendering
+  glBindTexture(GL_TEXTURE_2D, g_jupiterTexID);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixJupiter));
+  sphere->render();
+
+  // Saturn rendering
+  glBindTexture(GL_TEXTURE_2D, g_saturnTexID);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixSaturn));
+  sphere->render();
+
+  // Uranus rendering
+  glBindTexture(GL_TEXTURE_2D, g_uranusTexID);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixUranus));
+  sphere->render();
+
+  // Neptune rendering
+  glBindTexture(GL_TEXTURE_2D, g_neptuneTexID);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixNeptune));
+  sphere->render();
+
+  // Mercury rendering
+  glBindTexture(GL_TEXTURE_2D, g_mercuryTexID);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMercury));
+  sphere->render();
+
 
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
-// Update any accessible variable based on the current time.
 void update(const float currentTimeInSec) {
   // Constants for orbital and rotational periods
-  float earthOrbitSpeed = 0.5f;
-  float earthRotationSpeed = 1.0f;
-  float moonOrbitSpeed = 2.0f;
-  float moonRotationSpeed = 2.0f;
+  float earthOrbitSpeed = 0.5f, earthRotationSpeed = 1.0f;
+  float moonOrbitSpeed = 2.0f, moonRotationSpeed = 2.0f;
 
-  // Earth's transformation (orbit and rotation)
+  // Earth's transformation
   modelMatrixEarth = glm::mat4(1.0f);
   float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
   float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
@@ -393,7 +449,7 @@ void update(const float currentTimeInSec) {
   modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
   modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
 
-  // Moon's transformation (orbit and rotation)
+  // Moon's transformation
   modelMatrixMoon = glm::mat4(1.0f);
   float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
   glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]);
@@ -403,20 +459,56 @@ void update(const float currentTimeInSec) {
   modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
 
   // Mars parameters
-  const static float kSizeMars = 0.3f;
-  const static float kRadOrbitMars = 15.0f;
-  float marsOrbitSpeed = 0.3f;
-  float marsRotationSpeed = 0.8f;
-
-  // Mars transformation (orbit and rotation)
   modelMatrixMars = glm::mat4(1.0f);
-  float marsOrbitAngle = marsOrbitSpeed * currentTimeInSec;
-  float marsX = glm::cos(marsOrbitAngle) * kRadOrbitMars;
-  float marsZ = glm::sin(marsOrbitAngle) * kRadOrbitMars;
-  modelMatrixMars = glm::translate(modelMatrixMars, glm::vec3(marsX, 0.0f, marsZ));
-  modelMatrixMars = glm::rotate(modelMatrixMars, marsRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
-  modelMatrixMars = glm::scale(modelMatrixMars, glm::vec3(kSizeMars));
+  float marsOrbitAngle = 0.3f * currentTimeInSec;
+  modelMatrixMars = glm::translate(modelMatrixMars, glm::vec3(glm::cos(marsOrbitAngle) * 15.0f, 0.0f, glm::sin(marsOrbitAngle) * 15.0f));
+  modelMatrixMars = glm::rotate(modelMatrixMars, 0.8f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixMars = glm::scale(modelMatrixMars, glm::vec3(0.3f));
+
+  // Venus parameters
+  modelMatrixVenus = glm::mat4(1.0f);
+  float venusOrbitAngle = 0.4f * currentTimeInSec;
+  modelMatrixVenus = glm::translate(modelMatrixVenus, glm::vec3(glm::cos(venusOrbitAngle) * 8.0f, 0.0f, glm::sin(venusOrbitAngle) * 8.0f));
+  modelMatrixVenus = glm::rotate(modelMatrixVenus, 0.9f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixVenus = glm::scale(modelMatrixVenus, glm::vec3(0.4f));
+
+  // Additional planets
+  // Jupiter
+  modelMatrixJupiter = glm::mat4(1.0f);
+  float jupiterOrbitAngle = 0.2f * currentTimeInSec;
+  modelMatrixJupiter = glm::translate(modelMatrixJupiter, glm::vec3(glm::cos(jupiterOrbitAngle) * 20.0f, 0.0f, glm::sin(jupiterOrbitAngle) * 20.0f));
+  modelMatrixJupiter = glm::rotate(modelMatrixJupiter, 0.5f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixJupiter = glm::scale(modelMatrixJupiter, glm::vec3(1.0f));
+
+  // Saturn
+  modelMatrixSaturn = glm::mat4(1.0f);
+  float saturnOrbitAngle = 0.15f * currentTimeInSec;
+  modelMatrixSaturn = glm::translate(modelMatrixSaturn, glm::vec3(glm::cos(saturnOrbitAngle) * 25.0f, 0.0f, glm::sin(saturnOrbitAngle) * 25.0f));
+  modelMatrixSaturn = glm::rotate(modelMatrixSaturn, 0.4f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixSaturn = glm::scale(modelMatrixSaturn, glm::vec3(0.9f));
+
+  // Uranus
+  modelMatrixUranus = glm::mat4(1.0f);
+  float uranusOrbitAngle = 0.1f * currentTimeInSec;
+  modelMatrixUranus = glm::translate(modelMatrixUranus, glm::vec3(glm::cos(uranusOrbitAngle) * 30.0f, 0.0f, glm::sin(uranusOrbitAngle) * 30.0f));
+  modelMatrixUranus = glm::rotate(modelMatrixUranus, 0.3f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixUranus = glm::scale(modelMatrixUranus, glm::vec3(0.7f));
+
+  // Neptune
+  modelMatrixNeptune = glm::mat4(1.0f);
+  float neptuneOrbitAngle = 0.08f * currentTimeInSec;
+  modelMatrixNeptune = glm::translate(modelMatrixNeptune, glm::vec3(glm::cos(neptuneOrbitAngle) * 35.0f, 0.0f, glm::sin(neptuneOrbitAngle) * 35.0f));
+  modelMatrixNeptune = glm::rotate(modelMatrixNeptune, 0.3f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixNeptune = glm::scale(modelMatrixNeptune, glm::vec3(0.6f));
+
+  // Mercury
+  modelMatrixMercury = glm::mat4(1.0f);
+  float mercuryOrbitAngle = 0.6f * currentTimeInSec;
+  modelMatrixMercury = glm::translate(modelMatrixMercury, glm::vec3(glm::cos(mercuryOrbitAngle) * 5.0f, 0.0f, glm::sin(mercuryOrbitAngle) * 5.0f));
+  modelMatrixMercury = glm::rotate(modelMatrixMercury, 1.0f * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixMercury = glm::scale(modelMatrixMercury, glm::vec3(0.2f));
 }
+
 
 
 int main(int argc, char ** argv) {
