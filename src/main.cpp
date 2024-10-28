@@ -69,9 +69,12 @@ std::shared_ptr<Mesh> sphere;
 glm::mat4 modelMatrixSun;
 glm::mat4 modelMatrixEarth;
 glm::mat4 modelMatrixMoon;
+glm::mat4 modelMatrixMars;
 
 GLuint g_earthTexID;
 GLuint g_moonTexID;
+GLuint g_marsTexID;
+
 
 
 GLuint loadTextureFromFileToGPU(const std::string &filename) {
@@ -197,20 +200,24 @@ void loadShader(GLuint program, GLenum type, const std::string &shaderFilename) 
   glDeleteShader(shader);
 }
 
+
 void initGPUprogram() {
   g_program = glCreateProgram(); // Create a GPU program, i.e., two central shaders of the graphics pipeline
   loadShader(g_program, GL_VERTEX_SHADER, "vertexShader.glsl");
   loadShader(g_program, GL_FRAGMENT_SHADER, "fragmentShader.glsl");
-  glLinkProgram(g_program); // The main GPU program is ready to be handle streams of polygons
+  glLinkProgram(g_program); // The main GPU program is ready to handle streams of polygons
 
   glUseProgram(g_program);
-  // TODO: set shader variables, textures, etc.
 
+  // Load textures for Earth, Moon, and Mars
   g_earthTexID = loadTextureFromFileToGPU("media/earth.jpg");
   glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
   g_moonTexID = loadTextureFromFileToGPU("media/moon.jpg");
   glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
+  g_marsTexID = loadTextureFromFileToGPU("media/mars.jpg");
+  glUniform1i(glGetUniformLocation(g_program, "material.albedoTex"), 0); // texture unit 0
 }
+
 
 // Define your mesh(es) in the CPU memory
 void initCPUgeometry() { //THIS FUNCTION IS NOT USED ANYMORE WHEN  WE START USING THE MESH CLASS
@@ -326,88 +333,91 @@ void clear() {
 
 // The main rendering call
 void render() {
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   const glm::mat4 viewMatrix = g_camera.computeViewMatrix();
   const glm::mat4 projMatrix = g_camera.computeProjectionMatrix();
   const glm::vec3 camPosition = g_camera.getPosition();
 
-  glUniformMatrix4fv(glGetUniformLocation(g_program, "viewMat"), 1, GL_FALSE, glm::value_ptr(viewMatrix)); // compute the view matrix of the camera and pass it to the GPU program
-  glUniformMatrix4fv(glGetUniformLocation(g_program, "projMat"), 1, GL_FALSE, glm::value_ptr(projMatrix)); // compute the projection matrix of the camera and pass it to the GPU program
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "viewMat"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "projMat"), 1, GL_FALSE, glm::value_ptr(projMatrix));
   glUniform3fv(glGetUniformLocation(g_program, "camPosition"), 1, glm::value_ptr(camPosition));
 
-
-  glUniform1i(glGetUniformLocation(g_program, "isSun"), 1); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 1.0f, 0.0f);  // yellow
+  // Sun rendering
+  glUniform1i(glGetUniformLocation(g_program, "isSun"), 1);
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 1.0f, 0.0f);
   modelMatrixSun = glm::mat4(1.0f);
   modelMatrixSun = glm::scale(modelMatrixSun, glm::vec3(kSizeSun));
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixSun));
   sphere->render();
 
-  //Activate the texture for Earth
-  glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
-  glBindTexture(GL_TEXTURE_2D, g_earthTexID); // Bind the Earth texture
-  glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 0.0f); //magenta
-  //modelMatrixEarth = glm::mat4(1.0f);
-  //modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(kRadOrbitEarth, 0.0f, 0.0f));
-  //modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
+  // Earth rendering
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, g_earthTexID);
+  glUniform1i(glGetUniformLocation(g_program, "isSun"), 0);
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 1.0f, 0.0f);
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixEarth));
   sphere->render();
 
-  glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+  // Moon rendering
   glBindTexture(GL_TEXTURE_2D, g_moonTexID);
-  glUniform1i(glGetUniformLocation(g_program, "isSun"), 0); //  indicates if fragment is on/in Sun or not should use a color instead of a texture
-  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 0.0f, 1.0f);  // cyan
-  //modelMatrixMoon = glm::mat4(1.0f);
-  //modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(kRadOrbitMoon+kRadOrbitEarth, 0.0f, 0.0f));
-  //modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 0.0f, 0.0f, 1.0f);
   glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMoon));
   sphere->render();
 
-  /* TRIANGLES  
-  glBindVertexArray(g_vao);     // activate the VAO storing geometry data
-  glDrawElements(GL_TRIANGLES, g_triangleIndices.size(), GL_UNSIGNED_INT, 0); // Call for rendering: stream the current GPU geometry through the current GPU program
-  */
- glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture
+  // Mars rendering
+  glBindTexture(GL_TEXTURE_2D, g_marsTexID);
+  glUniform3f(glGetUniformLocation(g_program, "objectColor"), 1.0f, 0.5f, 0.3f);
+  glUniformMatrix4fv(glGetUniformLocation(g_program, "modelMatrix"), 1, GL_FALSE, glm::value_ptr(modelMatrixMars));
+  sphere->render();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
+
 
 // Update any accessible variable based on the current time.
 void update(const float currentTimeInSec) {
+  // Constants for orbital and rotational periods
+  float earthOrbitSpeed = 0.5f;
+  float earthRotationSpeed = 1.0f;
+  float moonOrbitSpeed = 2.0f;
+  float moonRotationSpeed = 2.0f;
 
-    // Adjusted Orbital and Rotational Periods (relative time factors)
-  float earthOrbitSpeed = 0.5f;   // Earth completes an orbit in 2 seconds
-  float earthRotationSpeed = 1.0f; // Earth completes a rotation in 1 second (half the orbit time)
-  float moonOrbitSpeed = 2.0f;     // Moon completes an orbit in 0.5 seconds (half of Earth’s rotation period)
-  float moonRotationSpeed = 2.0f;  // Moon’s rotation period matches its orbital period
-
-  // Earth's transformation (orbit around the Sun and rotation )
+  // Earth's transformation (orbit and rotation)
   modelMatrixEarth = glm::mat4(1.0f);
   float earthOrbitAngle = earthOrbitSpeed * currentTimeInSec;
   float earthX = glm::cos(earthOrbitAngle) * kRadOrbitEarth;
   float earthZ = glm::sin(earthOrbitAngle) * kRadOrbitEarth;
   modelMatrixEarth = glm::translate(modelMatrixEarth, glm::vec3(earthX, 0.0f, earthZ));
-
-  // Apply Earth's axial tilt (23.5 degrees)
   modelMatrixEarth = glm::rotate(modelMatrixEarth, glm::radians(23.5f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-  // Earth's rotation around its axis
   modelMatrixEarth = glm::rotate(modelMatrixEarth, earthRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
   modelMatrixEarth = glm::scale(modelMatrixEarth, glm::vec3(kSizeEarth));
 
-  // Moon's transformation (orbit around Earth and rotation)
+  // Moon's transformation (orbit and rotation)
   modelMatrixMoon = glm::mat4(1.0f);
   float moonOrbitAngle = moonOrbitSpeed * currentTimeInSec;
-
-  // Calculate Moon's position based on Earth's position
-  glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]); // Get Earth's current position
-  modelMatrixMoon = glm::translate(modelMatrixMoon, earthPosition); // Start from Earth's position
-  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon)); // Moon orbit around Earth
-  modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f)); // Moon rotation to match orbit period
+  glm::vec3 earthPosition = glm::vec3(modelMatrixEarth[3]);
+  modelMatrixMoon = glm::translate(modelMatrixMoon, earthPosition);
+  modelMatrixMoon = glm::translate(modelMatrixMoon, glm::vec3(glm::cos(moonOrbitAngle) * kRadOrbitMoon, 0.0f, glm::sin(moonOrbitAngle) * kRadOrbitMoon));
+  modelMatrixMoon = glm::rotate(modelMatrixMoon, moonRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
   modelMatrixMoon = glm::scale(modelMatrixMoon, glm::vec3(kSizeMoon));
 
+  // Mars parameters
+  const static float kSizeMars = 0.3f;
+  const static float kRadOrbitMars = 15.0f;
+  float marsOrbitSpeed = 0.3f;
+  float marsRotationSpeed = 0.8f;
+
+  // Mars transformation (orbit and rotation)
+  modelMatrixMars = glm::mat4(1.0f);
+  float marsOrbitAngle = marsOrbitSpeed * currentTimeInSec;
+  float marsX = glm::cos(marsOrbitAngle) * kRadOrbitMars;
+  float marsZ = glm::sin(marsOrbitAngle) * kRadOrbitMars;
+  modelMatrixMars = glm::translate(modelMatrixMars, glm::vec3(marsX, 0.0f, marsZ));
+  modelMatrixMars = glm::rotate(modelMatrixMars, marsRotationSpeed * currentTimeInSec, glm::vec3(0.0f, 1.0f, 0.0f));
+  modelMatrixMars = glm::scale(modelMatrixMars, glm::vec3(kSizeMars));
 }
+
 
 int main(int argc, char ** argv) {
   init(); // Your initialization code (user interface, OpenGL states, scene with geometry, material, lights, etc)
