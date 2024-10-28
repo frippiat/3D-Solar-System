@@ -28,7 +28,7 @@ void main()
     vec3 lightPosition = vec3(0.0, 0.0, 0.0);
     vec3 l = normalize(lightPosition-fPosition); // Light direction (hardcoded)
 
-    // Ambient lighting (constant low-intensity light)
+    // Ambient lighting  (constant low-intensity light)
     vec3 ambient = vec3(0.4,0.4, 0.4); // Low ambient light intensity
 
 
@@ -46,7 +46,7 @@ void main()
     vec3 specular = spec * vec3(1.0, 1.0, 1.0); // White specular highlights
 
     // Combine all lighting components (ambient + diffuse + specular)
-    vec3 finalColor = ambient+specular+diffuse;
+    vec3 finalColor =ambient+diffuse+specular;
     color = vec4(texColor*finalColor, 1.0);
     return;
 }

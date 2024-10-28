@@ -35,10 +35,10 @@ private:
 
     // OpenGL-related buffers
     GLuint m_vao = 0;        // Vertex Array Object (VAO)
-    GLuint m_posVbo = 0;     // Vertex Buffer Object (VBO) for positions
-    GLuint m_normalVbo = 0;  // Vertex Buffer Object (VBO) for normals
+    GLuint m_posVbo = 0;     // Vertex Buffer Object (VBO) for the positions
+    GLuint m_normalVbo = 0;  // Vertex Buffer Object (VBO) for the normals
     GLuint m_ibo = 0;        // Index Buffer Object (IBO)
-    GLuint m_texCoordVbo = 0; //Vertex Buffer Object (VBO) for texture coordinates
+    GLuint m_texCoordVbo = 0; //Vertex Buffer Object (VBO) for the texture coordinates
 };
 
 #endif // MESH_HPP

@@ -2,9 +2,7 @@
 
 // Initializes the geometry buffer
 void Mesh::init() {
-    // TODO: Set up the VAO, VBOs, and IBO for the mesh geometry.
-    // This should include binding the VAO, generating the buffer objects (glGenBuffers),
-    // and uploading vertex data (glBufferData).
+    // Set up the VAO, VBOs, and IBO for the mesh geometry
 
     // Create and bind the Vertex Array Object (VAO)
         #ifdef _MY_OPENGL_IS_33_
@@ -52,10 +50,7 @@ void Mesh::init() {
 
 // Called in the main rendering loop to render the mesh
 void Mesh::render() {
-    // TODO: Bind the VAO and issue the drawing commands using glDrawElements
-    // or glDrawArrays depending on whether indexed drawing is used.
-    // Ensure the appropriate shader program is bound before rendering.
-
+    // Bind the VAO and issue the drawing commands
     glBindVertexArray(m_vao);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_triangleIndices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -63,10 +58,7 @@ void Mesh::render() {
 
 // Generates a unit sphere with the given resolution
 std::shared_ptr<Mesh> Mesh::genSphere(const size_t resolution) {
-    // TODO: Generate a unit sphere based on the given resolution.
-    // This should calculate vertex positions, normals, and triangle indices.
-    // Populate m_vertexPositions, m_vertexNormals, and m_triangleIndices.
-    // Return a shared pointer to the newly created Mesh object.
+    // Generate a unit sphere based on the given resolution.
     auto mesh = std::make_shared<Mesh>();
 
         const float radius = 1.0f; // Unit sphere
