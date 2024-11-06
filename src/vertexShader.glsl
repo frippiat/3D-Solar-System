@@ -12,9 +12,9 @@ out vec2 fTexCoord;
 
 void main() 
 {
-    vec4 worldPosition = modelMatrix * vec4(vPosition, 1.0);
+    vec4 worldPosition = modelMatrix * vec4(vPosition, 1.0); //World position in 3D space of the planet
     fPosition = vec3(worldPosition); 
-    fNormal =mat3(transpose(inverse(modelMatrix))) * vNormal;  // NOG VERFIEER OF DIT CORRECT BEREKEND IS
+    fNormal =mat3(transpose(inverse(modelMatrix))) * vNormal;  // Normals must follow the planet after their transformation
     gl_Position = projMat * viewMat * worldPosition;
     fTexCoord=vTexCoord;
 }
